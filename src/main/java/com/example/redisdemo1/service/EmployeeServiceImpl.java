@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -30,22 +32,41 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void save(Employee employee) {
-            hashOperations.put(EMPLOYEE_KEY, String.valueOf(employee.getId()), employee);
+            hashOperations.put(String.valueOf(employee.getId()), String.valueOf(employee.getId()), employee);
     }
 
     @Override
-    public Employee getEmployeeById(Long id) {
-        return hashOperations.get(EMPLOYEE_KEY, id);
+    public Employee getEmployeeById(String id) {
+        return hashOperations.get(String.valueOf(id), id);
+    }
+
+//    @Override
+//    public List<Employee> getAllEmployees() {
+//        Set<String> keys=hashOperations.keys("*");
+//
+//        return hashOperations.keys(keys);
+//    }
+
+    @Override
+    public Map<String, Employee> getEmployeeMap(String id) {
+        return hashOperations.entries(id);
     }
 
     @Override
-    public List<Employee> getAllEmployees() {
-        return hashOperations.values(EMPLOYEE_KEY);
-    }
+    public Map<String, Employee> getEmployeeMaps() {
 
-    @Override
-    public Map<String, Employee> getEmployeeMap() {
-        return hashOperations.entries(EMPLOYEE_KEY);
+        Set<String> keys = redisTemplate.keys("*");
+        Map<String,Employee> map = new HashMap<>();
+        for (String key : keys) {
+            Map<String, Employee> empdata=hashOperations.entries(key);
+            Employee employee = new Employee();
+
+            employee.setId(empdata.get(key).getId());
+            employee.setName( empdata.get(key).getName());
+            map.put(key, employee);
+//            System.out.println(empdata.get(key).getName());
+        }
+        return map;
     }
 
     @Override
@@ -73,6 +94,13 @@ public class EmployeeServiceImpl implements EmployeeService {
         } else {
             throw new IllegalArgumentException("Employee with ID " + id + " does not exist.");
         }
+    }
+
+
+    @Override
+    public void save1(Employee employee) {
+        String key = String.valueOf(employee.getId()); // Create a unique key for each employee
+        redisTemplate.opsForValue().set(key, employee); // Save the employee object in Redis
     }
 
 }

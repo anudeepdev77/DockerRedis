@@ -26,27 +26,40 @@ public class EmployeeController {
         return ResponseEntity.ok().build();
     }
 
+
+    @PostMapping("/save1")
+    public ResponseEntity<Object> saveEmployee1(@RequestBody Employee employee) {
+        employeeService.save1(employee);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployeeById(id);
         return ResponseEntity.ok().build();
     }
 
-   @GetMapping("/getall")
-        public ResponseEntity<Object> getAllEmployees() {
-        return ResponseEntity.ok().body(employeeService.getAllEmployees());
-        }
+//   @GetMapping("/getall")
+//        public ResponseEntity<Object> getAllEmployees() {
+//        return ResponseEntity.ok().body(employeeService.getAllEmployees());
+//        }
 
         @GetMapping("/{id}")
-    public ResponseEntity<Object> getEmployee(@PathVariable Long id) {
+    public ResponseEntity<Object> getEmployee(@PathVariable String id) {
         return ResponseEntity.ok().body(employeeService.getEmployeeById(id));
         }
 
-        @GetMapping("/getallemp")
-    public ResponseEntity<Object> geAll() {
-            Map<String, Employee> employees = employeeService.getEmployeeMap();
+        @GetMapping("/getallemp/{id}")
+    public ResponseEntity<Object> geAll(@PathVariable  String id) {
+            Map<String, Employee> employees = employeeService.getEmployeeMap(id);
             return ResponseEntity.ok().body(employees);
         }
+
+    @GetMapping("/getallemp")
+    public ResponseEntity<Object> geAllEmp() {
+        Map<String, Employee> employees = employeeService.getEmployeeMaps();
+        return ResponseEntity.ok().body(employees);
+    }
 
 
     @PutMapping("/{id}")
