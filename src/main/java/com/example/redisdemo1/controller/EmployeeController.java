@@ -55,10 +55,21 @@ public class EmployeeController {
             return ResponseEntity.ok().body(employees);
         }
 
+//    @GetMapping("/getallemp")
+//    public ResponseEntity<Object> geAllEmp() {
+//        Map<String, String> employees = employeeService.getEmployeeMaps();
+//        return ResponseEntity.ok().body(employees);
+//    }
+
     @GetMapping("/getallemp")
-    public ResponseEntity<Object> geAllEmp() {
-        Map<String, Employee> employees = employeeService.getEmployeeMaps();
-        return ResponseEntity.ok().body(employees);
+    public ResponseEntity<List<Employee>> getAllEmployees() {
+        List<Employee> employees = employeeService.getEmployeeMaps();
+
+        if (employees.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Return 204 No Content if no employees found
+        }
+
+        return ResponseEntity.ok(employees);
     }
 
 

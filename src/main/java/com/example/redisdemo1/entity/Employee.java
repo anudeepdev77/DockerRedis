@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@RedisHash("Employee")
+//@RedisHash("Employee")
 public class Employee implements Serializable {
 
     private static final long serialVersionUID = 1L;

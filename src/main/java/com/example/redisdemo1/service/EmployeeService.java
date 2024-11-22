@@ -8,6 +8,7 @@ import java.util.Set;
 
 public interface EmployeeService {
     void save(Employee employee);
+//    void save1(Employee employee);
     Employee getEmployeeById(String id);
 //    List<Employee> getAllEmployees();
 
@@ -16,8 +17,7 @@ public interface EmployeeService {
     void deleteEmployeeById(Long id);
 
     Map<String, Employee> getEmployeeMap(String id);
-
-    Map<String, Employee> getEmployeeMaps();
+List<Employee> getEmployeeMaps();
 
     void updateEmployee(Long id, Employee updatedEmployee);
 

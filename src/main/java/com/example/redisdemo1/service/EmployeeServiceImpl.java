@@ -6,10 +6,7 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,10 +16,16 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private HashOperations<String, String, Employee> hashOperations;
+    private HashOperations<String,String,String> hashOperations1;
 
     @PostConstruct
     public void init() {
         this.hashOperations = redisTemplate.opsForHash();
+    }
+
+    @PostConstruct
+    public void init1() {
+        this.hashOperations1 = redisTemplate.opsForHash();
     }
 
 
@@ -32,8 +35,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void save(Employee employee) {
+
             hashOperations.put(String.valueOf(employee.getId()), String.valueOf(employee.getId()), employee);
     }
+
+    @Override
+    public void save1(Employee employee) {
+        String key = String.valueOf(employee.getId()); // Use employee ID as the Redis key
+        hashOperations1.put(key, "id", String.valueOf(employee.getId())); // Save the ID field
+        hashOperations1.put(key, "name", employee.getName()); // Save the name field
+    }
+
 
     @Override
     public Employee getEmployeeById(String id) {
@@ -52,21 +64,50 @@ public class EmployeeServiceImpl implements EmployeeService {
         return hashOperations.entries(id);
     }
 
-    @Override
-    public Map<String, Employee> getEmployeeMaps() {
-
-        Set<String> keys = redisTemplate.keys("*");
-        Map<String,Employee> map = new HashMap<>();
-        for (String key : keys) {
-            Map<String, Employee> empdata=hashOperations.entries(key);
-            Employee employee = new Employee();
-
-            employee.setId(empdata.get(key).getId());
-            employee.setName( empdata.get(key).getName());
-            map.put(key, employee);
+//    @Override
+//    public Map<String, String> getEmployeeMaps() {
+//
+//        Set<String> keys = redisTemplate.keys("*");
+//        Map<String,Employee> map = new HashMap<>();
+//        for (String key : keys) {
+//            Map<String, String> empdata=hashOperations1.entries(key);
+//            Employee employee = new Employee();
+//
+//            employee.setId(empdata.get(key).getId());
+//            employee.setName( empdata.get(key).getName());
+//            map.put(key, employee);
 //            System.out.println(empdata.get(key).getName());
+//        }
+//        return map;
+//    }
+
+    public List<Employee> getEmployeeMaps() {
+        // Fetch all keys matching the employee pattern (e.g., numeric IDs or a specific prefix)
+        Set<String> keys = redisTemplate.keys("*");
+
+        // If no keys are found, return an empty list
+        if (keys == null || keys.isEmpty()) {
+            return Collections.emptyList();
         }
-        return map;
+
+        List<Employee> employees = new ArrayList<>();
+
+        // Iterate over the keys and fetch each hash
+        for (String key : keys) {
+            Map<Object, Object> employeeData = redisTemplate.opsForHash().entries(key);
+
+            if (!employeeData.isEmpty()) {
+                // Map the hash data to an Employee object
+                Employee employee = new Employee();
+                employee.setId(Long.valueOf((String) employeeData.get("id")));
+                employee.setName((String) employeeData.get("name"));
+//                employee.setDepartment((String) employeeData.get("department"));
+                System.out.println(employee.getId());
+                employees.add(employee);
+            }
+        }
+
+        return employees;
     }
 
     @Override
@@ -97,10 +138,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
 
-    @Override
-    public void save1(Employee employee) {
-        String key = String.valueOf(employee.getId()); // Create a unique key for each employee
-        redisTemplate.opsForValue().set(key, employee); // Save the employee object in Redis
-    }
+//    @Override
+//    public void save1(Employee employee) {
+//        String key = String.valueOf(employee.getId()); // Create a unique key for each employee
+//        redisTemplate.opsForValue().set(key, employee); // Save the employee object in Redis
+//    }
 
 }

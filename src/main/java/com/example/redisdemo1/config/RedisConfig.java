@@ -1,6 +1,10 @@
 package com.example.redisdemo1.config;
 
 import com.example.redisdemo1.entity.Employee;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -28,17 +32,44 @@ public class RedisConfig {
     }
 
 
+//    @Bean
+//    public RedisTemplate<String, Object> redisTemplate() {
+//        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+//        redisTemplate.setConnectionFactory(connectionFactory());
+//        redisTemplate.setKeySerializer(new StringRedisSerializer());  // Serialize keys as Strings
+//        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Employee.class));  // Serialize Employee objects
+//        redisTemplate.setHashKeySerializer(new StringRedisSerializer());  // Serialize hash keys as Strings
+//        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Employee.class));  // Serialize hash values as Employee objects
+//        redisTemplate.afterPropertiesSet();  // Initialize the RedisTemplate
+//        return redisTemplate;
+//    }
+
     @Bean
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory());
-        redisTemplate.setKeySerializer(new StringRedisSerializer());  // Serialize keys as Strings
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Employee.class));  // Serialize Employee objects
-        redisTemplate.setHashKeySerializer(new StringRedisSerializer());  // Serialize hash keys as Strings
-        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Employee.class));  // Serialize hash values as Employee objects
-        redisTemplate.afterPropertiesSet();  // Initialize the RedisTemplate
+
+        // Configure Jackson2JsonRedisSerializer with type metadata
+        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.activateDefaultTyping(
+                objectMapper.getPolymorphicTypeValidator(),
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                JsonTypeInfo.As.PROPERTY
+        );
+        serializer.setObjectMapper(objectMapper);
+
+        // Set serializers
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(serializer);
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(serializer);
+
+        redisTemplate.afterPropertiesSet();
         return redisTemplate;
     }
+
+
 
 
     @Bean
